@@ -2864,23 +2864,28 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
 @interface FXFormImagePickerCell () <UINavigationControllerDelegate, UIImagePickerControllerDelegate>
 
 @property (nonatomic, strong) UIImagePickerController *imagePickerController;
+@property (nonatomic, readwrite) UITableView *tableView;
+@property (nonatomic, copy) NSIndexPath *indexPath;
 
 @end
 
-
 @implementation FXFormImagePickerCell
+
++ (CGFloat)heightForField:(FXFormField *)field width:(CGFloat)width
+{
+    (void)width;
+
+    // 200 is a decent start.  End users can always reimplement this method.
+
+    return field.value ? 200 : FXFormFieldPaddingTop + 21 + FXFormFieldPaddingBottom;
+}
 
 - (void)setUp
 {
     [super setUp];
     
-    self.selectionStyle = UITableViewCellSelectionStyleNone;
-    
-    UIImageView *imageView = [[UIImageView alloc] init];
-    imageView.contentMode = UIViewContentModeScaleAspectFill;
-    imageView.clipsToBounds = YES;
-    self.accessoryView = imageView;
-    [self setNeedsLayout];
+    self.imageView.contentMode = UIViewContentModeScaleAspectFill;
+    self.imageView.clipsToBounds = YES;
 }
 
 - (void)dealloc
@@ -2890,19 +2895,29 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
 
 - (void)layoutSubviews
 {
-    CGRect frame = self.imagePickerView.bounds;
-    frame.size.height = self.bounds.size.height - 10;
-    UIImage *image = self.imagePickerView.image;
-    frame.size.width = image.size.height? image.size.width * (frame.size.height / image.size.height): 0;
-    self.imagePickerView.bounds = frame;
-    
     [super layoutSubviews];
+
+    CGRect labelFrame = self.textLabel.frame;
+    labelFrame.origin.y = FXFormFieldPaddingTop;
+    labelFrame.origin.x = 15;
+    labelFrame.size.width = [self.textLabel.text sizeWithFont:self.textLabel.font].width;
+    self.textLabel.frame = labelFrame;
+
+    UIImage *image = self.imageView.image;
+    CGFloat imageWidth = image.size.width;
+    CGFloat imageHeight = image.size.height;
+
+    CGFloat imageViewHeight = MIN(imageHeight, self.bounds.size.height - CGRectGetHeight(labelFrame));
+    CGFloat aspectRatio = imageHeight ? imageWidth / imageHeight : 0;
+    CGFloat imageViewWidth = aspectRatio * imageViewHeight;
+
+    self.imageView.frame = CGRectMake(self.bounds.size.width / 2 - imageViewWidth / 2, CGRectGetHeight(labelFrame) + (self.bounds.size.height - CGRectGetHeight(labelFrame)) / 2 - imageViewHeight / 2, imageViewWidth, imageViewHeight);
 }
 
 - (void)update
 {
     self.textLabel.text = self.field.title;
-    self.imagePickerView.image = [self imageValue];
+    self.imageView.image = [self imageValue];
     [self setNeedsLayout];
 }
 
@@ -2935,11 +2950,6 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
     return _imagePickerController;
 }
 
-- (UIImageView *)imagePickerView
-{
-    return (UIImageView *)self.accessoryView;
-}
-
 - (BOOL)setSourceType:(UIImagePickerControllerSourceType)sourceType
 {
     if ([UIImagePickerController isSourceTypeAvailable:sourceType])
@@ -2952,6 +2962,9 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
 
 - (void)didSelectWithTableView:(UITableView *)tableView controller:(UIViewController *)controller
 {
+    self.tableView = tableView;
+    self.indexPath = tableView.indexPathForSelectedRow;
+
     [self becomeFirstResponder];
     [tableView deselectRowAtIndexPath:tableView.indexPathForSelectedRow animated:YES];
     [controller presentViewController:self.imagePickerController animated:YES completion:NULL];
@@ -2960,6 +2973,9 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
 {
     [picker dismissViewControllerAnimated:YES completion:NULL];
+
+    self.tableView = nil;
+    self.indexPath = nil;
 }
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
@@ -2967,9 +2983,13 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
     self.field.value = info[UIImagePickerControllerEditedImage] ?: info[UIImagePickerControllerOriginalImage];
     [picker dismissViewControllerAnimated:YES completion:NULL];
     
-    self.imagePickerView.image = [self imageValue];
+    self.imageView.image = [self imageValue];
     [self setNeedsLayout];
-    
+
+    [self.tableView reloadRowsAtIndexPaths:@[ self.indexPath ] withRowAnimation:UITableViewRowAnimationAutomatic];
+    self.tableView = nil;
+    self.indexPath = nil;
+
     if (self.field.action) self.field.action(self);
 }
 
