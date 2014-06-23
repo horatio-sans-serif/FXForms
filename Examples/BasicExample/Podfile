@@ -1,0 +1,5 @@
+platform :ios, '7.0'
+
+xcodeproj 'BasicExample'
+
+pod 'CZPhotoPickerController', '~> 1.2'

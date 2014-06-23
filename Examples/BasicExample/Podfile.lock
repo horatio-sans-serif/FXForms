@@ -1,0 +1,10 @@
+PODS:
+  - CZPhotoPickerController (1.2.2)
+
+DEPENDENCIES:
+  - CZPhotoPickerController (~> 1.2)
+
+SPEC CHECKSUMS:
+  CZPhotoPickerController: 7b8ad1f19fb51bb63deb0f362a9d1532b8646a47
+
+COCOAPODS: 0.33.1

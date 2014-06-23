@@ -33,6 +33,7 @@
 #import "FXForms.h"
 #import <objc/runtime.h>
 
+#import "CZPhotoPickerController.h"
 
 #pragma GCC diagnostic ignored "-Wobjc-missing-property-synthesis"
 #pragma GCC diagnostic ignored "-Wdirect-ivar-access"
@@ -2863,9 +2864,7 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
 
 @interface FXFormImagePickerCell () <UINavigationControllerDelegate, UIImagePickerControllerDelegate>
 
-@property (nonatomic, strong) UIImagePickerController *imagePickerController;
-@property (nonatomic, readwrite) UITableView *tableView;
-@property (nonatomic, copy) NSIndexPath *indexPath;
+@property (nonatomic, strong) CZPhotoPickerController *photoPicker;
 
 @end
 
@@ -2888,11 +2887,6 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
     self.imageView.clipsToBounds = YES;
 }
 
-- (void)dealloc
-{
-    _imagePickerController.delegate = nil;
-}
-
 - (void)layoutSubviews
 {
     [super layoutSubviews];
@@ -2907,11 +2901,12 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
     CGFloat imageWidth = image.size.width;
     CGFloat imageHeight = image.size.height;
 
-    CGFloat imageViewHeight = MIN(imageHeight, self.bounds.size.height - CGRectGetHeight(labelFrame));
+    CGFloat verticalMargin = 10;
+    CGFloat imageViewHeight = MIN(imageHeight, self.bounds.size.height - CGRectGetMaxY(labelFrame) - verticalMargin);
     CGFloat aspectRatio = imageHeight ? imageWidth / imageHeight : 0;
     CGFloat imageViewWidth = aspectRatio * imageViewHeight;
 
-    self.imageView.frame = CGRectMake(self.bounds.size.width / 2 - imageViewWidth / 2, CGRectGetHeight(labelFrame) + (self.bounds.size.height - CGRectGetHeight(labelFrame)) / 2 - imageViewHeight / 2, imageViewWidth, imageViewHeight);
+    self.imageView.frame = CGRectMake(self.bounds.size.width / 2 - imageViewWidth / 2, CGRectGetMaxY(labelFrame) + verticalMargin/2, imageViewWidth, imageViewHeight);
 }
 
 - (void)update
@@ -2939,58 +2934,38 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
     return nil;
 }
 
-- (UIImagePickerController *)imagePickerController
-{
-    if (!_imagePickerController)
-    {
-        _imagePickerController = [[UIImagePickerController alloc] init];
-        _imagePickerController.delegate = self;
-        [self setSourceType:UIImagePickerControllerSourceTypePhotoLibrary];
-    }
-    return _imagePickerController;
-}
-
-- (BOOL)setSourceType:(UIImagePickerControllerSourceType)sourceType
-{
-    if ([UIImagePickerController isSourceTypeAvailable:sourceType])
-    {
-        self.imagePickerController.sourceType = sourceType;
-        return YES;
-    }
-    return NO;
-}
-
 - (void)didSelectWithTableView:(UITableView *)tableView controller:(UIViewController *)controller
 {
-    self.tableView = tableView;
-    self.indexPath = tableView.indexPathForSelectedRow;
-
     [self becomeFirstResponder];
-    [tableView deselectRowAtIndexPath:tableView.indexPathForSelectedRow animated:YES];
-    [controller presentViewController:self.imagePickerController animated:YES completion:NULL];
-}
 
-- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
-{
-    [picker dismissViewControllerAnimated:YES completion:NULL];
+    NSIndexPath *selectedIndexPath = tableView.indexPathForSelectedRow;
+    [tableView deselectRowAtIndexPath:selectedIndexPath animated:YES];
 
-    self.tableView = nil;
-    self.indexPath = nil;
-}
+    __weak FXFormImagePickerCell *weakSelf = self;
 
-- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
-{
-    self.field.value = info[UIImagePickerControllerEditedImage] ?: info[UIImagePickerControllerOriginalImage];
-    [picker dismissViewControllerAnimated:YES completion:NULL];
-    
-    self.imageView.image = [self imageValue];
-    [self setNeedsLayout];
+    self.photoPicker = [[CZPhotoPickerController alloc] initWithPresentingViewController:controller withCompletionBlock:^(UIImagePickerController *imagePickerController, NSDictionary *imageInfoDict) {
 
-    [self.tableView reloadRowsAtIndexPaths:@[ self.indexPath ] withRowAnimation:UITableViewRowAnimationAutomatic];
-    self.tableView = nil;
-    self.indexPath = nil;
+        UIImage *image = (imagePickerController.allowsEditing
+                          ? imageInfoDict[UIImagePickerControllerEditedImage]
+                          : imageInfoDict[UIImagePickerControllerOriginalImage]);
 
-    if (self.field.action) self.field.action(self);
+        weakSelf.field.value = image;
+        weakSelf.imageView.image = [weakSelf imageValue];
+        [weakSelf setNeedsLayout];
+
+        [weakSelf.photoPicker dismissAnimated:YES];
+        weakSelf.photoPicker = nil;
+
+        [tableView reloadRowsAtIndexPaths:@[ selectedIndexPath ] withRowAnimation:UITableViewRowAnimationAutomatic];
+
+        if (weakSelf.field.action) {
+            weakSelf.field.action(weakSelf);
+        }
+    }];
+
+    self.photoPicker.allowsEditing = YES; // optional
+    self.photoPicker.cropOverlaySize = CGSizeMake(320, 320);
+    [self.photoPicker showFromRect:tableView.frame];
 }
 
 @end

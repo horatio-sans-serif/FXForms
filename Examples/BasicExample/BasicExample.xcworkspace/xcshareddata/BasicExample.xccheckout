@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>F511F0EA-D05D-44DF-8AB9-80BE59B6454F</string>
+	<key>IDESourceControlProjectName</key>
+	<string>BasicExample</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>BCD60210-25BB-49AC-8C83-D4B077ECF810</key>
+		<string>ssh://github.com/fictorial/FXForms.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>Examples/BasicExample/BasicExample.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>BCD60210-25BB-49AC-8C83-D4B077ECF810</key>
+		<string>../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>ssh://github.com/fictorial/FXForms.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>BCD60210-25BB-49AC-8C83-D4B077ECF810</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>BCD60210-25BB-49AC-8C83-D4B077ECF810</string>
+			<key>IDESourceControlWCCName</key>
+			<string>FXForms</string>
+		</dict>
+	</array>
+</dict>
+</plist>
