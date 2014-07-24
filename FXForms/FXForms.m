@@ -2945,8 +2945,11 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
 
     self.photoPicker = [[CZPhotoPickerController alloc] initWithPresentingViewController:controller withCompletionBlock:^(UIImagePickerController *imagePickerController, NSDictionary *imageInfoDict) {
 
-        if (!imagePickerController && !imageInfoDict)
+        if (!imagePickerController && !imageInfoDict) {
+            [weakSelf.photoPicker dismissAnimated:YES];
+            weakSelf.photoPicker = nil;
             return;
+        }
 
         UIImage *image = (imagePickerController.allowsEditing
                           ? imageInfoDict[UIImagePickerControllerEditedImage]
