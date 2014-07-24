@@ -37,6 +37,8 @@
 {
     //we can lookup the form from the cell if we want, like this:
     RegistrationForm *form = cell.field.form;
+
+    NSLog(@"form email = %@", form.email);
     
     //we can then perform validation, etc
     if (form.agreedToTerms)

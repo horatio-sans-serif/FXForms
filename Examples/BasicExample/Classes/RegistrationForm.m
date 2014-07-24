@@ -45,6 +45,8 @@
              //another regular field
              
              @"dateOfBirth",
+
+             @{FXFormFieldKey: @"timeOfBirth", FXFormFieldType: FXFormFieldTypeTime},
              
              //we want to use a stepper control for this value, so let's specify that
              
